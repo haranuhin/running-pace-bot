@@ -1,10 +1,9 @@
 import os
-import asyncio
 from telegram import Update, ReplyKeyboardMarkup
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes, ConversationHandler
 
-# Токен от @BotFather
-BOT_TOKEN = "8303379555:AAF_koul86cJtzaiNOMSu7QvMinmhzihZVA"
+# Токен бота (будет установлен в переменных окружения Railway)
+BOT_TOKEN = os.environ.get('BOT_TOKEN', '8303379555:AAF_koul86cJtzaiNOMSu7QvMinmhzihZVA')
 
 # Состояния для ConversationHandler
 CHOOSING, CALC_PACE, CALC_TIME, CALC_DISTANCE = range(4)
@@ -225,7 +224,7 @@ async def calculate_distance_from_pace_time(update: Update, context: ContextType
         """
         
         await update.message.reply_text(response, parse_mode='Markdown')
-        return CHOOSING
+        return CALC_DISTANCE
         
     except ValueError:
         await update.message.reply_text("❌ Ошибка ввода. Пример: *60 5:00*", parse_mode='Markdown')
@@ -262,11 +261,17 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     """Запуск бота"""
+    # Проверяем наличие токена
+    if BOT_TOKEN == 'YOUR_BOT_TOKEN_HERE':
+        print("❌ ОШИБКА: Установи переменную BOT_TOKEN в Render!")
+        return
+    
+    # Создаем приложение
     application = Application.builder().token(BOT_TOKEN).build()
     
     # Настройка ConversationHandler
     conv_handler = ConversationHandler(
-        entry_points=[CommandHandler('start', start)],
+        entry_points=[CommandHandler("start", start)],
         states={
             CHOOSING: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_choice)
@@ -286,7 +291,8 @@ def main():
     
     application.add_handler(conv_handler)
     
-    print("Бот запущен...")
+    # Запускаем бота
+    print("🏃‍♂️ Беговой бот запущен...")
     application.run_polling()
 
 if __name__ == "__main__":
